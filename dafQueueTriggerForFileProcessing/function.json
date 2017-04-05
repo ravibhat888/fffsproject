@@ -1,0 +1,12 @@
+{
+  "bindings": [
+    {
+      "name": "myQueueItem",
+      "type": "queueTrigger",
+      "direction": "in",
+      "queueName": "daflistner",
+      "connection": "AzureWebJobsStorage"
+    }
+  ],
+  "disabled": false
+}
