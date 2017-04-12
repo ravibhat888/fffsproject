@@ -85,7 +85,7 @@ public class ExecutePackage
                 dataEntityRefCode = row["DataEntityRefCode"].ToString();
                 exceptionMsg = "";
                 executeSrvcPkgStoredProcedure(PackageType.Service, "Insert", runGroupID, packageID);
-                if (row["implementationtype"].ToString().Equals(ImplementationType.Scala.ToString()))
+                if (row["implementationtype"].ToString().ToLower().Equals(ImplementationType.Scala.ToString().ToLower()))
                 {
                     log.Info($"Called Scala Job :" + packageName);
                     log.Info($"filename : { fileName }");
@@ -99,7 +99,7 @@ public class ExecutePackage
                     }
                     log.Info($"Finished Scala Job :" + packageName);
                 }
-                else if (row["implementationtype"].ToString().Equals(ImplementationType.StoredProcedure.ToString()))
+                else if (row["implementationtype"].ToString().ToLower().Equals(ImplementationType.StoredProcedure.ToString().ToLower()))
                 {
                     log.Info($"Called SP :" + packageName);
                     errorThrown = invokeStoredProcedure(packageName);
