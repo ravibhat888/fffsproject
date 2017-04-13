@@ -21,6 +21,10 @@ class ExecuteBatch
     private string BatchAccountName; // = "fffsbatchtest";
     private string BatchAccountKey ; //= "yt5WxQ3RzdjvmIjx8sDwEI3CzngfEv3kHggJoQGCiv+NwrOynXmIEo2TFneQD6O4rgl9U6StTJYgf1dIT+WyIg==";
     private string BatchAccountUrl ; //= "https://fffsbatchtest.northeurope.batch.azure.com";
+<<<<<<< HEAD
+=======
+
+>>>>>>> b28861c103dac2a8a48d1edfedc2d252dad1ae42
     // Storage account credentials
     private string StorageAccountName ; //= "fffsbatchstorage";
     private string StorageAccountKey ; //= "q+FYKZfaYINPNIuSPCwnhmS80M4MuMA2mL740q4HU2d3gh2+uENf491CBv4kh85V5czojrigVC7iRFsIJ2vf4A==";
@@ -35,7 +39,10 @@ class ExecuteBatch
     private string StagingAccName= "";
      private string StagingAccKey= "";
     private string stagingOutputName = "";
+<<<<<<< HEAD
     
+=======
+>>>>>>> b28861c103dac2a8a48d1edfedc2d252dad1ae42
     public async Task MainAsync(TraceWriter _log)
     {
         log = _log;

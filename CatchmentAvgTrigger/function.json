@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "bindings": [
     {
@@ -8,4 +9,16 @@
     }
   ],
   "disabled": true
+=======
+{
+  "bindings": [
+    {
+      "name": "myTimer",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "* */5 * * * *"
+    }
+  ],
+  "disabled": true
+>>>>>>> b28861c103dac2a8a48d1edfedc2d252dad1ae42
 }
