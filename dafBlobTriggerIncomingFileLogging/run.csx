@@ -28,6 +28,7 @@ public static void Run(CloudBlockBlob myBlob, string name, TraceWriter log) //St
 
 private static void configureIncomingFile(string fileName)
 {
+    int filesGroupID=0;
     using (SqlConnection conn = new SqlConnection())
     {
         SqlCommand sqlCommand;
@@ -44,10 +45,19 @@ private static void configureIncomingFile(string fileName)
         sqlCommand.CommandTimeout = 600;
         sqlCommand.Parameters.Add("@FileName", SqlDbType.VarChar).Value = fileName;
         //sqlCommand.Parameters.Add("@FilePath", SqlDbType.VarChar).Value = filePath;
-        sqlOutParam = new SqlParameter("@FileID", SqlDbType.Int);
+        sqlOutParam = new SqlParameter("@FilesGroupId", SqlDbType.Int);
         sqlOutParam.Direction = ParameterDirection.Output;
         sqlCommand.Parameters.Add(sqlOutParam);
 
+        sqlCommand.ExecuteNonQuery();
+
+        if(!(sqlOutParam == null))
+                filesGroupID = Convert.ToInt32(sqlOutParam.Value.ToString());
+
+        sqlCommand = new SqlCommand("DAF.usp_MarkFileReadyToLoad", conn);
+        sqlCommand.CommandType = CommandType.StoredProcedure;
+        sqlCommand.CommandTimeout = 600;
+        sqlCommand.Parameters.Add("@FilesGroupId", SqlDbType.VarChar).Value = filesGroupID;
         sqlCommand.ExecuteNonQuery();
     }
 }
