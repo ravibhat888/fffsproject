@@ -160,10 +160,10 @@ public class ExecutePackage
                     arguments.Add(args);
                     if (args.Equals("--app_arguments"))
                     {
-                        args = reader["parametervalue"].ToString().Trim() + " " + fName + " " + strTimeStamp + ((isGrouped == "Y")? " " + scalaConfigList["SCALA_DAF_METADB"]: "");
+                        args = reader["parametervalue"].ToString() + " " + fName + " " + strTimeStamp + ((isGrouped == "Y")? " " + scalaConfigList["SCALA_DAF_METADB"]: "");
                     }
                     else
-                        args = reader["parametervalue"].ToString().Trim();
+                        args = reader["parametervalue"].ToString();
 
                     arguments.Add(args);
 
