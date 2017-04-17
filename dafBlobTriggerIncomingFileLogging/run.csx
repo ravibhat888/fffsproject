@@ -21,7 +21,7 @@ public static void Run(CloudBlockBlob myBlob, string name, TraceWriter log) //St
     log.Info($"FilePath : " + myBlob.StorageUri);
     log.Info($"FilePath-P : " + myBlob.Uri);
     log.Info($"FilePath : " + name);
-    configureIncomingFile(name);
+    configureIncomingFile(name, log);
     //log.Info($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {myBlob.Length} Bytes");
     
 }
