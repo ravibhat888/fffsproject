@@ -34,35 +34,37 @@ public static void Run(string myQueueItem, TraceWriter log)
     FileCtrl fileCtrl = JsonConvert.DeserializeObject<FileCtrl>(myQueueItem);
 
 
-    log.Info($"File ID: {fileCtrl.FileID}");
+    log.Info($"File ID: {fileCtrl.FilesGroupID}");
     log.Info($"File Name: {fileCtrl.FileName}");
-    log.Info($"RUn group: {fileCtrl.runGroupID}");
+    log.Info($"RUn group: {fileCtrl.RunGroupID}");
+   
     ExecutePackage objPackageExec = new ExecutePackage();
     //objPackageExec.readFileCtrl();
     //objPackageExec.addMsgQueue();
-    objPackageExec.executePipleline(log,fileCtrl.FileID,fileCtrl.runGroupID,fileCtrl.FileName);
+    objPackageExec.executePipleline(log,fileCtrl.FilesGroupID,fileCtrl.RunGroupID,fileCtrl.FileName, fileCtrl.IsGrouped);
 
      log.Info($"C# Queue trigger finishied execution");
 }
 
 public class ExecutePackage 
 {
-    private int ctrlPackageID, servicePkgID, noofRecordsAff, generatedRecord, fileID, runGroupID;
+    private int ctrlPackageID, servicePkgID, noofRecordsAff, generatedRecord, filesGroupID, runGroupID;
     public string strReserviorConString, strTimeStamp, fileName;
     private Dictionary<string, string> scalaConfigList;
     private HDInsightJobManagementClient _hdiJobManagementClient;
     //public string cnnString;
     private string exceptionMsg;
-    public void executePipleline(TraceWriter log, int fID, int runGrpID, string fName)
+    public void executePipleline(TraceWriter log, int fID, int runGrpID, string fName, string isGroupd)
     {
         string packageName;
         List<string> scalaArgs = null;
         int packageID, packageRunGroupID;
-        string  cleanUpSPName, exitRefCode="", dataEntityRefCode;
+        string  cleanUpSPName, exitRefCode="", dataEntityRefCode, isGrouped;
         bool errorThrown=false;
         runGroupID = runGrpID;
-        fileID = fID;
+        filesGroupID = fID;
         fileName = fName;
+        isGrouped = isGroupd;
         log.Info($"Called executePipleline");
         //cnnString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
         getResConnectionString();
@@ -85,13 +87,13 @@ public class ExecutePackage
                 dataEntityRefCode = row["DataEntityRefCode"].ToString();
                 exceptionMsg = "";
                 executeSrvcPkgStoredProcedure(PackageType.Service, "Insert", runGroupID, packageID);
-                if (row["implementationtype"].ToString().ToLower().Equals(ImplementationType.Scala.ToString().ToLower()))
+                if (row["implementationtype"].ToString().ToLower().Equals(ImplementationType.SCALA.ToString().ToLower()))
                 {
                     log.Info($"Called Scala Job :" + packageName);
                     log.Info($"filename : { fileName }");
                     log.Info($"TimeStamp : { strTimeStamp }");
                     scalaArgs = getScalaParameters(packageID, runGroupID, fileName);
-                     log.Info($"Scala Params -  {String.Join(String.Empty, scalaArgs.ToArray())}");
+                    log.Info($"Scala Params -  {String.Join(String.Empty, scalaArgs.ToArray())}");
                     errorThrown = SubmitMRJob(packageName, scalaArgs,log);
                     if (errorThrown)
                     {
@@ -99,7 +101,7 @@ public class ExecutePackage
                     }
                     log.Info($"Finished Scala Job :" + packageName);
                 }
-                else if (row["implementationtype"].ToString().ToLower().Equals(ImplementationType.StoredProcedure.ToString().ToLower()))
+                else if (row["implementationtype"].ToString().ToLower().Equals(ImplementationType.STOREDPROCEDURE.ToString().ToLower()))
                 {
                     log.Info($"Called SP :" + packageName);
                     errorThrown = invokeStoredProcedure(packageName);
@@ -118,13 +120,13 @@ public class ExecutePackage
             if (errorThrown == true && exitRefCode.Equals("ABORT"))
             {
                 executeCtrlPkgStoredProcedure(PackageType.Controlling, "FAIL", runGroupID);
-                updateFileStatus(fileID,"Failed");
+                updateFileStatus(filesGroupID,"Failed");
             }
             else
             {
                 executeCtrlPkgStoredProcedure(PackageType.Controlling, "Update", runGroupID);
                 executeCleanupSP(cleanUpSPName, runGroupID, "END");
-                updateFileStatus(fileID,"Loaded");
+                updateFileStatus(filesGroupID,"Loaded");
             }
             log.Info($"Execution Completed.");
             
@@ -143,7 +145,7 @@ public class ExecutePackage
             string sqlText = null;
             conn.ConnectionString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString; //"Data Source=eafffsdevelopment.database.windows.net,1433;Initial Catalog=EAFFFSDevMetadata;User ID=sqladmin;Password=Pass01word";
             sqlText = "SELECT  ParameterDescription, parametervalue FROM daf.packagerungroup pkgGRP JOIN daf.parameter prm ON pkgGRP.packagerungroupID = prm.packagerungroupID " +
-                        "WHERE rungroupid = " + runGroupID +" ORDER BY pkgGRP.LastModifiedDate Desc";
+                        "WHERE rungroupid = " + runGroupID +" AND packageid= " + packageID + " ORDER BY pkgGRP.LastModifiedDate Desc";
             conn.Open();
 
             sqlCommand = new SqlCommand(sqlText, conn);
@@ -157,6 +159,10 @@ public class ExecutePackage
                     arguments.Add(args);
                     if (args.Equals("--app_arguments"))
                         args = reader["parametervalue"].ToString().Trim() + " " + fName + " " + strTimeStamp;
+                    
+                    if(isGrouped == "Y")
+                            args = args + " " + scalaConfigList["SCALA_DAF_METADB"];
+
                     else
                         args = reader["parametervalue"].ToString().Trim();
 
@@ -226,7 +232,7 @@ public class ExecutePackage
                 sqlCommand.Parameters.Add("@RunBy", SqlDbType.VarChar).Value = "System User";
                 sqlCommand.Parameters.Add("@ProgressStatusRefCode", SqlDbType.VarChar).Value = "InProgress";
                 sqlCommand.Parameters.Add("@RunGroupID", SqlDbType.Int).Value = runGroupID;
-                sqlCommand.Parameters.Add("@FileID", SqlDbType.Int).Value = fileID;
+                sqlCommand.Parameters.Add("@FileGroupID", SqlDbType.Int).Value = filesGroupID;
                 sqlOutParam = new SqlParameter("@ControllingPackageRunID", SqlDbType.Int);
                 sqlOutParam.Direction = ParameterDirection.Output;
                 sqlCommand.Parameters.Add(sqlOutParam);
@@ -461,7 +467,7 @@ public class ExecutePackage
             conn.ConnectionString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
             conn.Open();
             sqlCommand.Parameters.Add("@Stamp", SqlDbType.VarChar).Value = strTimeStamp;
-            sqlCommand.Parameters.Add("@FileID", SqlDbType.Int).Value = fileID;
+            sqlCommand.Parameters.Add("@FileGroupId", SqlDbType.Int).Value = filesGroupID;
             sqlCommand.CommandText = "[DAF].[usp_UpdateGeneratedFileName]";
             sqlCommand.Connection = conn;
             sqlCommand.CommandType = CommandType.StoredProcedure;
@@ -479,29 +485,30 @@ public class ExecutePackage
             DataTable packageData = new DataTable();
             conn.ConnectionString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
 
-            var sqlText = "SELECT * FROM DAF.vw_GetPackageExecutionData WHERE Rungroupid =" + runGroupID + " ORDER BY executionOrderNum ASC";
+            var sqlText = "[DAF].[usp_GetPackageExecutionList]"; //"SELECT * FROM DAF.vw_GetPackageExecutionData WHERE Rungroupid =" + runGroupID + " ORDER BY executionOrderNum ASC";
             conn.Open();
 
             sqlCommand = new SqlCommand(sqlText, conn);
-            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandType = CommandType.StoredProcedure;
+            sqlCommand.Parameters.Add("@RunGroupid", SqlDbType.Int).Value = runGroupID;
             var reader = sqlCommand.ExecuteReader();
             packageData.Load(reader);
             reader.Close();
             return packageData;
         }
     }
-    private void updateFileStatus(int fileID, string status)
+    private void updateFileStatus(int filesGroupID, string status)
     {
         using (SqlConnection conn = new SqlConnection())
         {
             SqlCommand sqlCommand = new SqlCommand();
             conn.ConnectionString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
             conn.Open();
-            sqlCommand.CommandText = "[DAF].[usp_UpdateFileCtrlStatus]";
+            sqlCommand.CommandText = "[DAF].[usp_UpdateFilesGroupStatus]";
 
             //"Update DAF.FileCtrl SET FileStatus='Completed' WHERE FileID=" + fileID;
             sqlCommand.Connection = conn;
-            sqlCommand.Parameters.Add("@Fileid", SqlDbType.Int).Value = fileID;
+            sqlCommand.Parameters.Add("@FilesGroupId", SqlDbType.Int).Value = filesGroupID;
             sqlCommand.Parameters.Add("@Status", SqlDbType.VarChar).Value = status;
             sqlCommand.CommandType = CommandType.StoredProcedure;
             sqlCommand.ExecuteNonQuery();
@@ -512,8 +519,9 @@ public class ExecutePackage
 
 public enum ImplementationType
 {
-    StoredProcedure,
-    Scala,
+    STOREDPROCEDURE,
+    SCALA,
+    DOTNET
 }
 
 public enum PackageType
@@ -524,9 +532,10 @@ public enum PackageType
 
 public class FileCtrl
 {
-    public int FileID { get; set; }
+    public int FilesGroupID { get; set; }
     public string FileName { get; set; }
-    public int runGroupID { get; set; }
+    public int RunGroupID { get; set; }
     public int FileTypeID { get; set; }
     string      GeneratedFilePath { get; set; }
+    string      IsGrouped { get; set; }
 }

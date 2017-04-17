@@ -35,20 +35,20 @@ public static void readFileCtrl(TraceWriter log)
         DataTable packageData = new DataTable();
         conn.ConnectionString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
 
-        var sqlText = "SELECT F.FileID,F.Name,fr.RunGroupid FROM DAF.Filectrl f JOIN DAF.Filetype ft ON f.filetypeid = ft.filetypeid"+
-                        " JOIN DAF.FiletypeRungroupmapping fr ON fr.FileTypeid = ft.Filetypeid WHERE f.FileStatus = 'ReadyToLoad' ";
+        var sqlText = "[DAF].[usp_GetRunGroupsToBeExecuted]";
         conn.Open();
 
         sqlCommand = new SqlCommand(sqlText, conn);
-        sqlCommand.CommandType = CommandType.Text;
+        sqlCommand.CommandType = CommandType.StoredProcedure;
         var sqlReader = sqlCommand.ExecuteReader();
         DataTable dtFileCtrl = new DataTable();
         dtFileCtrl.Load(sqlReader);
         var lstFilectrl = dtFileCtrl.AsEnumerable().Select(r => 
                             new FileCtrl {
-                                FileID =  Convert.ToInt32( r["FileID"]),
+                                FilesGroupID =  Convert.ToInt32( r["FilesGroupid"]),
                                 FileName = r["Name"].ToString(),
-                                runGroupID = Convert.ToInt32(r["RunGroupid"])
+                                RunGroupID = Convert.ToInt32(r["RunGroupid"]),
+                                IsGrouped = r["IsGrouped"].ToString(),
                             }).ToList();
 
         string output = "";
@@ -57,7 +57,7 @@ public static void readFileCtrl(TraceWriter log)
         {
             output = JsonConvert.SerializeObject(ctrl);
             addMsgQueue(output);
-            updateFileStatus(ctrl.FileID);
+            updateFileStatus(ctrl.FilesGroupID);
         }
     }
 }
@@ -79,25 +79,29 @@ public static void addMsgQueue(string msg)
     }
 }
 
-private static void updateFileStatus(int fileID)
+private static void updateFileStatus(int filesGroupID)
 {
     using (SqlConnection conn = new SqlConnection())
     {
         SqlCommand sqlCommand = new SqlCommand();
         conn.ConnectionString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
         conn.Open();
-        sqlCommand.CommandText = "Update DAF.FileCtrl SET FileStatus='AddedToQueue' WHERE FileID=" + fileID;
+        sqlCommand.CommandText = "[DAF].[usp_UpdateFilesGroupStatus]"; //"Update DAF.FileCtrl SET FileStatus='AddedToQueue' WHERE FileID=" + fileID;
         sqlCommand.Connection = conn;
-        sqlCommand.CommandType = CommandType.Text;
+        sqlCommand.CommandType = CommandType.StoredProcedure;
+        sqlCommand.Parameters.Add("@FilesGroupId", SqlDbType.Int).Value = filesGroupID;
+        sqlCommand.Parameters.Add("@Status", SqlDbType.VarChar).Value = "AddedToQueue";
+
         sqlCommand.ExecuteNonQuery();
     }
 }
 
 public class FileCtrl
 {
-    public int FileID { get; set; }
+    public int FilesGroupID { get; set; }
     public string FileName { get; set; }
-    public int runGroupID { get; set; }
+    public int RunGroupID { get; set; }
     public int FileTypeID { get; set; }
     string      GeneratedFilePath { get; set; }
+    string      IsGrouped { get; set; }
 }
