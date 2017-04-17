@@ -103,5 +103,5 @@ public class FileCtrl
     public int RunGroupID { get; set; }
     public int FileTypeID { get; set; }
     string      GeneratedFilePath { get; set; }
-    string      IsGrouped { get; set; }
+    public string      IsGrouped { get; set; }
 }

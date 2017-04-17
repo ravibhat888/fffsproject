@@ -49,7 +49,7 @@ public static void Run(string myQueueItem, TraceWriter log)
 public class ExecutePackage 
 {
     private int ctrlPackageID, servicePkgID, noofRecordsAff, generatedRecord, filesGroupID, runGroupID;
-    public string strReserviorConString, strTimeStamp, fileName;
+    public string strReserviorConString, strTimeStamp, fileName, isGrouped;
     private Dictionary<string, string> scalaConfigList;
     private HDInsightJobManagementClient _hdiJobManagementClient;
     //public string cnnString;
@@ -59,7 +59,7 @@ public class ExecutePackage
         string packageName;
         List<string> scalaArgs = null;
         int packageID, packageRunGroupID;
-        string  cleanUpSPName, exitRefCode="", dataEntityRefCode, isGrouped;
+        string  cleanUpSPName, exitRefCode="", dataEntityRefCode;
         bool errorThrown=false;
         runGroupID = runGrpID;
         filesGroupID = fID;
@@ -155,18 +155,18 @@ public class ExecutePackage
             {
                 while (reader.Read())
                 {
-                    args = reader["ParameterDescription"].ToString().Trim();
+                    args="";
+                    args = reader["ParameterDescription"].ToString().Trim() + " ";
                     arguments.Add(args);
                     if (args.Equals("--app_arguments"))
-                        args = reader["parametervalue"].ToString().Trim() + " " + fName + " " + strTimeStamp;
-                    
-                    if(isGrouped == "Y")
-                            args = args + " " + scalaConfigList["SCALA_DAF_METADB"];
-
+                    {
+                        args = reader["parametervalue"].ToString().Trim() + " " + fName + " " + strTimeStamp + ((isGrouped == "Y")? " " + scalaConfigList["SCALA_DAF_METADB"]: "");
+                    }
                     else
                         args = reader["parametervalue"].ToString().Trim();
 
                     arguments.Add(args);
+
 
                 }
             }
@@ -232,7 +232,7 @@ public class ExecutePackage
                 sqlCommand.Parameters.Add("@RunBy", SqlDbType.VarChar).Value = "System User";
                 sqlCommand.Parameters.Add("@ProgressStatusRefCode", SqlDbType.VarChar).Value = "InProgress";
                 sqlCommand.Parameters.Add("@RunGroupID", SqlDbType.Int).Value = runGroupID;
-                sqlCommand.Parameters.Add("@FileGroupID", SqlDbType.Int).Value = filesGroupID;
+                sqlCommand.Parameters.Add("@FilesGroupID", SqlDbType.Int).Value = filesGroupID;
                 sqlOutParam = new SqlParameter("@ControllingPackageRunID", SqlDbType.Int);
                 sqlOutParam.Direction = ParameterDirection.Output;
                 sqlCommand.Parameters.Add(sqlOutParam);
@@ -467,7 +467,7 @@ public class ExecutePackage
             conn.ConnectionString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
             conn.Open();
             sqlCommand.Parameters.Add("@Stamp", SqlDbType.VarChar).Value = strTimeStamp;
-            sqlCommand.Parameters.Add("@FileGroupId", SqlDbType.Int).Value = filesGroupID;
+            sqlCommand.Parameters.Add("@FilesGroupId", SqlDbType.Int).Value = filesGroupID;
             sqlCommand.CommandText = "[DAF].[usp_UpdateGeneratedFileName]";
             sqlCommand.Connection = conn;
             sqlCommand.CommandType = CommandType.StoredProcedure;
@@ -537,5 +537,5 @@ public class FileCtrl
     public int RunGroupID { get; set; }
     public int FileTypeID { get; set; }
     string      GeneratedFilePath { get; set; }
-    string      IsGrouped { get; set; }
+    public string      IsGrouped { get; set; }
 }
