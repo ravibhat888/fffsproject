@@ -26,38 +26,47 @@ public static void Run(CloudBlockBlob myBlob, string name, TraceWriter log) //St
     
 }
 
-private static void configureIncomingFile(string fileName)
+private static void configureIncomingFile(string fileName, TraceWriter log)
 {
-    int filesGroupID=0;
-    using (SqlConnection conn = new SqlConnection())
+    try
     {
-        SqlCommand sqlCommand;
-        SqlParameter sqlOutParam = null;
-        DataTable packageData = new DataTable();
-        var cnnString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
-        conn.ConnectionString = cnnString;
+        int filesGroupID=0;
+        using (SqlConnection conn = new SqlConnection())
+        {
+            SqlCommand sqlCommand;
+            SqlParameter sqlOutParam = null;
+            DataTable packageData = new DataTable();
+            var cnnString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
+            conn.ConnectionString = cnnString;
 
-        var sqlText = "DAF.usp_ConfigureIncomingFile";
-        conn.Open();
+            var sqlText = "DAF.usp_ConfigureIncomingFile";
+            conn.Open();
 
-        sqlCommand = new SqlCommand(sqlText, conn);
-        sqlCommand.CommandType = CommandType.StoredProcedure;
-        sqlCommand.CommandTimeout = 600;
-        sqlCommand.Parameters.Add("@FileName", SqlDbType.VarChar).Value = fileName;
-        //sqlCommand.Parameters.Add("@FilePath", SqlDbType.VarChar).Value = filePath;
-        sqlOutParam = new SqlParameter("@FilesGroupId", SqlDbType.Int);
-        sqlOutParam.Direction = ParameterDirection.Output;
-        sqlCommand.Parameters.Add(sqlOutParam);
+            sqlCommand = new SqlCommand(sqlText, conn);
+            sqlCommand.CommandType = CommandType.StoredProcedure;
+            sqlCommand.CommandTimeout = 600;
+            sqlCommand.Parameters.Add("@FileName", SqlDbType.VarChar).Value = fileName;
+            //sqlCommand.Parameters.Add("@FilePath", SqlDbType.VarChar).Value = filePath;
+            sqlOutParam = new SqlParameter("@FilesGroupId", SqlDbType.Int);
+            sqlOutParam.Direction = ParameterDirection.Output;
+            sqlCommand.Parameters.Add(sqlOutParam);
 
-        sqlCommand.ExecuteNonQuery();
+            sqlCommand.ExecuteNonQuery();
 
-        if(!(sqlOutParam == null))
-                filesGroupID = Convert.ToInt32(sqlOutParam.Value.ToString());
+            if(!(sqlOutParam == null))
+                    filesGroupID = Convert.ToInt32(sqlOutParam.Value.ToString());
 
-        sqlCommand = new SqlCommand("DAF.usp_MarkFileReadyToLoad", conn);
-        sqlCommand.CommandType = CommandType.StoredProcedure;
-        sqlCommand.CommandTimeout = 600;
-        sqlCommand.Parameters.Add("@FilesGroupId", SqlDbType.VarChar).Value = filesGroupID;
-        sqlCommand.ExecuteNonQuery();
+            log.Info($"Files group ID : " + filesGroupID);
+
+            sqlCommand = new SqlCommand("DAF.usp_MarkFileReadyToLoad", conn);
+            sqlCommand.CommandType = CommandType.StoredProcedure;
+            sqlCommand.CommandTimeout = 600;
+            sqlCommand.Parameters.Add("@FilesGroupId", SqlDbType.VarChar).Value = filesGroupID;
+            sqlCommand.ExecuteNonQuery();
+        }
+    }
+    catch(Exception ex)
+    {
+        log.Info($"Exception: {ex.Message}");
     }
 }
