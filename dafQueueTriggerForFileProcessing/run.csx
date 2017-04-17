@@ -156,14 +156,14 @@ public class ExecutePackage
                 while (reader.Read())
                 {
                     args="";
-                    args = reader["ParameterDescription"].ToString().Trim() + " ";
+                    args = reader["ParameterDescription"].ToString().Trim();
                     arguments.Add(args);
                     if (args.Equals("--app_arguments"))
                     {
-                        args = reader["parametervalue"].ToString() + " " + fName + " " + strTimeStamp + ((isGrouped == "Y")? " " + scalaConfigList["SCALA_DAF_METADB"]: "");
+                        args = " " + reader["parametervalue"].ToString() + " " + fName + " " + strTimeStamp + ((isGrouped == "Y")? " " + scalaConfigList["SCALA_DAF_METADB"]: "");
                     }
                     else
-                        args = reader["parametervalue"].ToString();
+                        args = " " + reader["parametervalue"].ToString();
 
                     arguments.Add(args);
 
