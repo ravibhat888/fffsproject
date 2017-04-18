@@ -423,7 +423,7 @@ class ExecuteBatch
 
             //Check whether blob has files or not, if not skip task creation.
 
-            IEnumerable<IListBlobItem> item = container.ListBlobs(prefix: null, useFlatBlobListing: true);
+            //IEnumerable<IListBlobItem> item = container.ListBlobs(prefix: null, useFlatBlobListing: true);
             if (item != null && item.Count() == 0)
             {
                 log.Info($"Skipping job creation, as there is no files in blob {inputContainerName}...");
