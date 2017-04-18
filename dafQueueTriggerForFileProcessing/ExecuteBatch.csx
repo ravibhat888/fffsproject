@@ -434,13 +434,11 @@ class ExecuteBatch
             //string taskId = "taskCatchment_" + inputFiles.IndexOf(inputFile) + DateTime.UtcNow.Ticks.ToString();
             string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", inputContainerName, outputContainerName, StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, stagingOutputName); 
             //StagingAccName, StagingAccKey, stagingOutputName
-            
+            log.Info($"Command line passed to batch: [{taskCommandLine}]..." );
             CloudTask task = new CloudTask(taskId, taskCommandLine);
             //task.ResourceFiles = new List<ResourceFile> { inputFile };
             tasks.Add(task);
             //await batchClient.JobOperations.ReactivateTaskAsync(jobId, taskId);
-                
-            
 
             // Add the tasks as a collection opposed to a separate AddTask call for each. Bulk task submission
             // helps to ensure efficient underlying API calls to the Batch service.
