@@ -30,23 +30,28 @@ class ExecuteBatch
     private TraceWriter log;
     private List<string> inputContainerList = new List<string>();
     private string appContainerName = ""; //"batchapplication";
-    //const string inputContainerName = "input";
+    private string inputContainerName = "";
     private string outputContainerName = ""; // "telemetry";
     private string StagingAccName= "";
-     private string StagingAccKey= "";
-    private string stagingOutputName = "";
-    public async Task MainAsync(TraceWriter _log)
+    private string StagingAccKey= "";
+    private string stagingOutputName = "", filesGroupID="", strTimeStamp="";
+    int runGroupID,packageID;
+    public async Task MainAsync(TraceWriter _log, int rGroupID, int pkgID, string fName, string sTimeStamp, string fGroupID)
     {
         log = _log;
         log.Info($"Sample start: {DateTime.Now.ToString()}" );
-      
+
+        runGroupID = rGroupID;
+        packageID = pkgID;
+        filesGroupID = fGroupID;
+        strTimeStamp = sTimeStamp;
         Stopwatch timer = new Stopwatch();
         timer.Start();
-        inputContainerList.AddRange( new string[] { "northeast-h13", "northeast-h19", "northeast-m2", "northeast-n6", "northeast-n7", "northeast-n9", "northeast-n10" });
+        //inputContainerList.AddRange( new string[] { "northeast-h13", "northeast-h19", "northeast-m2", "northeast-n6", "northeast-n7", "northeast-n9", "northeast-n10" });
        
-       //inputContainerList.AddRange( new string[] { "northeast-n7" });
-       
-         LoadEnvironmentVariables();
+        //inputContainerList.AddRange( new string[] { "northeast-n7" });
+        log.Info($"Loading Environment variables " );
+        LoadEnvironmentVariables();
         // Construct the Storage account connection string
         string storageConnectionString = String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}",
                                                         StorageAccountName, StorageAccountKey);
@@ -117,22 +122,99 @@ class ExecuteBatch
         }
         
     }
-
+        
     private void LoadEnvironmentVariables()
     {
-        BatchAccountName= GetEnvironmentVariable("BatchAccountName");
-        BatchAccountKey= GetEnvironmentVariable("BatchAccountKey");
-        BatchAccountUrl= GetEnvironmentVariable("BatchAccountUrl");
-        StorageAccountName= GetEnvironmentVariable("StorageAccountName");
-        StorageAccountKey= GetEnvironmentVariable("StorageAccountKey");
+        Dictionary<string,string> DotNetConfigs = new Dictionary<string, string>();
+        using (SqlConnection conn = new SqlConnection())
+        {
+            SqlCommand sqlCommand;
+            string sql = null;
+            conn.ConnectionString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;//"Data Source=eafffsdevelopment.database.windows.net,1433;Initial Catalog=EAFFFSDevMetaData;User ID=sqladmin;Password=Pass01word";
+            sql = "SELECT ConfigKey,ConfigValue FROM DAF.Configuration c JOIN DAF.Configurationgroup cg ON cG.ConfigGroupID= c.ConfigGroupID WHERE CG.Shortname= 'DOTNET'";
+            conn.Open();
+            sqlCommand = new SqlCommand(sql, conn);
+            sqlCommand.CommandType = CommandType.Text;
+            using (var reader = sqlCommand.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    DotNetConfigs.Add(reader["ConfigKey"].ToString().Trim(), reader["ConfigValue"].ToString().Trim());
+                }
+                reader.Close();
+                reader.Dispose();
+            }
+
+            sql="DAF.usp_GetFilesGroupDetails";
+            sqlCommand = new sqlCommand(sql,conn);
+            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.Parameters.Add(new SqlParameter("@fileGroupID", fileGroupID));
+            using (var sqlreader = sqlCommand.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    outputContainerName = reader["outputdirectory"].ToString().Trim();
+                    inputContainerName = reader["inputdirectory"].ToString().Trim();
+                }
+                reader.Close();
+                reader.Dispose();
+            }
+        }
+
+        BatchAccountName= DotNetConfigs["DOTNET_BATCHACCOUNTNAME"];
+        BatchAccountKey= DotNetConfigs["DOTNET_BATCHACCOUNTKEY"];
+        BatchAccountUrl= DotNetConfigs["DOTNET_BATCHACCOUNTURL"];
+        StorageAccountName= DotNetConfigs["DOTNET_LANDINGACCOUNTNAME"];
+        StorageAccountKey= DotNetConfigs["DOTNET_LANDINGSTORAGEACCOUNTKEY"];
+        StagingAccName = DotNetConfigs["DOTNET_STAGINGACCOUNTNAME"];
+        StagingAccKey = DotNetConfigs["DOTNET_STAGINGSTORAGEACCOUNTKEY"];
+        PoolId = DotNetConfigs["DOTNET_BATCHPOOLNAME"];
+
         appContainerName = GetEnvironmentVariable("appContainerName");
-        outputContainerName = GetEnvironmentVariable("outputContainerName");
-        StagingAccName = GetEnvironmentVariable("StagingAccountName");
-        StagingAccKey = GetEnvironmentVariable("StagingStorageAccountKey");
-        stagingOutputName = GetEnvironmentVariable("StagingOutputContainerName");
-        PoolId = GetEnvironmentVariable("BatchPoolName") ;
+
+        stagingOutputName = ""; //TODO: staging name needs to be passed
         
     } 
+
+    private List<string> getDotNetParameters(int packageID, int runGroupID )
+    {
+        List<string> arguments = new List<string>();
+        string args = string.Empty;
+
+        using (SqlConnection conn = new SqlConnection())
+        {
+            SqlCommand sqlCommand;
+            string sqlText = null;
+            conn.ConnectionString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString; //"Data Source=eafffsdevelopment.database.windows.net,1433;Initial Catalog=EAFFFSDevMetadata;User ID=sqladmin;Password=Pass01word";
+            sqlText = "SELECT  ParameterDescription, parametervalue FROM daf.packagerungroup pkgGRP JOIN daf.parameter prm ON pkgGRP.packagerungroupID = prm.packagerungroupID " +
+                        "WHERE rungroupid = " + runGroupID +" AND packageid= " + packageID + " ORDER BY pkgGRP.LastModifiedDate Desc";
+            conn.Open();
+
+            sqlCommand = new SqlCommand(sqlText, conn);
+            sqlCommand.CommandType = CommandType.Text;
+            //command.Parameters.Add(new SqlParameter("@FileName", "abc34.txt"));
+            using (var reader = sqlCommand.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    args="";
+                    args = reader["ParameterDescription"].ToString().Trim();
+                    arguments.Add(args);
+                    if (args.Equals("--app_arguments"))
+                    {
+                        args = reader["parametervalue"].ToString() + " " + fName + " " + strTimeStamp + ((isGrouped == "Y")? " " + scalaConfigList["SCALA_DAF_METADB"]: "");
+                    }
+                    else
+                        args = reader["parametervalue"].ToString();
+
+                    arguments.Add(args);
+
+
+                }
+            }
+        }
+        return arguments; //args.Split(',').ToList(); 
+    }
     /// <summary>
     /// Creates a container with the specified name in Blob storage, unless a container with that name already exists.
     /// </summary>
@@ -360,40 +442,32 @@ class ExecuteBatch
         // the shared directory on whichever node each task will run.
         try
         {
-            foreach (string inputContainer in inputContainerList)
+            
+            log.Info($"Container {inputContainer}...");
+
+            CloudBlobContainer container = blobClient.GetContainerReference(inputContainer);
+
+            //Check whether blob has files or not, if not skip task creation.
+
+            IEnumerable<IListBlobItem> item = container.ListBlobs(prefix: null, useFlatBlobListing: true);
+            if (item != null && item.Count() == 0)
             {
-                CloudBlobContainer container = blobClient.GetContainerReference(inputContainer);
-
-                //Check whether blob has files or not, if not skip task creation.
-
-                IEnumerable<IListBlobItem> item = container.ListBlobs(prefix: null, useFlatBlobListing: true);
-                if (item != null && item.Count() == 0)
-                {
-                    log.Info($"Skipping job creation, as there is no files in blob {inputContainer}...");
-                    continue;
-                }
-                // try
-                // {
-                //     var filelist = item.AsEnumerable().Select(r => string.IsNullOrEmpty(r.Uri.AbsoluteUri)).ToList();
-                // }
-                // catch (Exception ex)
-                // {
-                //     log.Info($"Skipping job creation, as there is no files in blob [{inputContainer}]..." );
-                //     continue;
-                // }
-
-                log.Info($"Task creation,for the  blob [{inputContainer}]..." );
-                string taskId = "CatchmentAvgTask_" + inputContainer +  "_" + DateTime.Now.Ticks.ToString();
-                //string taskId = "taskCatchment_" + inputFiles.IndexOf(inputFile) + DateTime.UtcNow.Ticks.ToString();
-                string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", inputContainer, outputContainerName, StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, stagingOutputName); 
-                //StagingAccName, StagingAccKey, stagingOutputName
-                
-                CloudTask task = new CloudTask(taskId, taskCommandLine);
-                //task.ResourceFiles = new List<ResourceFile> { inputFile };
-                tasks.Add(task);
-                //await batchClient.JobOperations.ReactivateTaskAsync(jobId, taskId);
-                
+                log.Info($"Skipping job creation, as there is no files in blob {inputContainer}...");
+                continue;
             }
+
+            log.Info($"Task creation,for the  blob [{inputContainer}]..." );
+            string taskId = "CatchmentAvgTask_" + inputContainer +  "_" + DateTime.Now.Ticks.ToString();
+            //string taskId = "taskCatchment_" + inputFiles.IndexOf(inputFile) + DateTime.UtcNow.Ticks.ToString();
+            string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", inputContainer, outputContainerName, StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, stagingOutputName); 
+            //StagingAccName, StagingAccKey, stagingOutputName
+            
+            CloudTask task = new CloudTask(taskId, taskCommandLine);
+            //task.ResourceFiles = new List<ResourceFile> { inputFile };
+            tasks.Add(task);
+            //await batchClient.JobOperations.ReactivateTaskAsync(jobId, taskId);
+                
+            
 
             // Add the tasks as a collection opposed to a separate AddTask call for each. Bulk task submission
             // helps to ensure efficient underlying API calls to the Batch service.
@@ -409,7 +483,7 @@ class ExecuteBatch
         catch (Exception be)
         {
             log.Info($"Error occured while trying to process task: {be.Message} ");
-            throw; // Any other exception is unexpected
+            throw be; // Any other exception is unexpected
 
         }
         return tasks;

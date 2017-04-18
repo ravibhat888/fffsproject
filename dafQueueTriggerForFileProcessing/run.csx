@@ -119,7 +119,7 @@ public class ExecutePackage
                 {
                     log.Info($"Called .Net executable :" + packageName);
                     ExecuteBatch batch = new ExecuteBatch();
-                    batch.MainAsync(log).Wait();
+                    batch.MainAsync(log, runGroupID, packageID, fName, strTimeStamp,filesGroupID).Wait();
                     log.Info($"Finished .Net executable execution :" + packageName);
                 }
                 executeSrvcPkgStoredProcedure(PackageType.Service, (errorThrown ==true)? "FAIL":"Update", runGroupID, packageID);
@@ -184,7 +184,6 @@ public class ExecutePackage
         }
         return arguments; //args.Split(',').ToList(); 
     }
-
     private bool invokeStoredProcedure(string spName)
     {
         try
