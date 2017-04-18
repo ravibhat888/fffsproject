@@ -432,7 +432,8 @@ class ExecuteBatch
             log.Info($"Task creation,for the  blob [{inputContainerName}]..." );
             string taskId = "CatchmentAvgTask_" + inputContainerName +  "_" + DateTime.Now.Ticks.ToString();
             //string taskId = "taskCatchment_" + inputFiles.IndexOf(inputFile) + DateTime.UtcNow.Ticks.ToString();
-            string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", inputContainerName, outputContainerName, StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, stagingOutputName); 
+            //string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", inputContainerName, outputContainerName, StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, stagingOutputName); 
+            string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", "abc", "xyz", StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, stagingOutputName); 
             //StagingAccName, StagingAccKey, stagingOutputName
             log.Info($"Command line passed to batch: [{taskCommandLine}]..." );
             CloudTask task = new CloudTask(taskId, taskCommandLine);
