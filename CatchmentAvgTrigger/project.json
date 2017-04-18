@@ -11,7 +11,8 @@
 				"Microsoft.IdentityModel.Clients.ActiveDirectory":"3.10.305231913",
 				"Microsoft.Net.Http":"2.2.29",
 				"WindowsAzure.Storage": "7.0.0",
-                "Azure.Batch":"6.0.0",
+				"Microsoft.Azure.Management.HDInsight.Job":"2.0.5",
+				"Azure.Batch":"6.0.0",
 				"Microsoft.Azure.KeyVault.Core":"1.0.0",
 				"Microsoft.Rest.ClientRuntime":"3.0.0",
 				"Microsoft.Rest.ClientRuntime.Azure":"3.0.0"
