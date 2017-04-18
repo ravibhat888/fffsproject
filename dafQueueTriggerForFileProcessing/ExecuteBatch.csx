@@ -152,18 +152,18 @@ class ExecuteBatch
             }
 
             sql="DAF.usp_GetFilesGroupDetails";
-            sqlCommand = new sqlCommand(sql,conn);
+            sqlCommand = new SqlCommand(sql,conn);
             sqlCommand.CommandType = CommandType.Text;
             sqlCommand.Parameters.Add(new SqlParameter("@fileGroupID", filesGroupID));
             using (var sqlreader = sqlCommand.ExecuteReader())
             {
-                while (reader.Read())
+                while (sqlreader.Read())
                 {
-                    outputContainerName = reader["outputdirectory"].ToString().Trim();
-                    inputContainerName = reader["inputdirectory"].ToString().Trim();
+                    outputContainerName = sqlreader["outputdirectory"].ToString().Trim();
+                    inputContainerName = sqlreader["inputdirectory"].ToString().Trim();
                 }
-                reader.Close();
-                reader.Dispose();
+                sqlreader.Close();
+                sqlreader.Dispose();
             }
         }
 
@@ -410,23 +410,22 @@ class ExecuteBatch
         try
         {
             
-            log.Info($"Container {inputContainer}...");
+            log.Info($"Container {inputContainerName}...");
 
-            CloudBlobContainer container = blobClient.GetContainerReference(inputContainer);
+            CloudBlobContainer container = blobClient.GetContainerReference(inputContainerName);
 
             //Check whether blob has files or not, if not skip task creation.
 
             IEnumerable<IListBlobItem> item = container.ListBlobs(prefix: null, useFlatBlobListing: true);
             if (item != null && item.Count() == 0)
             {
-                log.Info($"Skipping job creation, as there is no files in blob {inputContainer}...");
-                continue;
+                log.Info($"Skipping job creation, as there is no files in blob {inputContainerName}...");
             }
 
-            log.Info($"Task creation,for the  blob [{inputContainer}]..." );
-            string taskId = "CatchmentAvgTask_" + inputContainer +  "_" + DateTime.Now.Ticks.ToString();
+            log.Info($"Task creation,for the  blob [{inputContainerName}]..." );
+            string taskId = "CatchmentAvgTask_" + inputContainerName +  "_" + DateTime.Now.Ticks.ToString();
             //string taskId = "taskCatchment_" + inputFiles.IndexOf(inputFile) + DateTime.UtcNow.Ticks.ToString();
-            string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", inputContainer, outputContainerName, StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, stagingOutputName); 
+            string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", inputContainerName, outputContainerName, StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, stagingOutputName); 
             //StagingAccName, StagingAccKey, stagingOutputName
             
             CloudTask task = new CloudTask(taskId, taskCommandLine);
