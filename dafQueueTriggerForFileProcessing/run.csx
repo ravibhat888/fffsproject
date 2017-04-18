@@ -26,7 +26,11 @@ using Microsoft.Azure.Management.HDInsight.Job.Models;
 using System.Text;
 using System.Threading;
 using Hyak.Common;
-
+// using Microsoft.Azure.Batch;
+// using Microsoft.Azure.Batch.Auth;
+// using Microsoft.Azure.Batch.Common;
+// using Microsoft.WindowsAzure.Storage.Blob;
+// using System.Diagnostics;
 public static void Run(string myQueueItem, TraceWriter log)
 {
     log.Info($"C# Queue trigger function processed: {myQueueItem}");
