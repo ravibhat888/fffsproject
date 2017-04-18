@@ -153,7 +153,7 @@ class ExecuteBatch
 
             sql="DAF.usp_GetFilesGroupDetails";
             sqlCommand = new SqlCommand(sql,conn);
-            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandType = CommandType.StoredProcedure;
             sqlCommand.Parameters.Add(new SqlParameter("@fileGroupID", filesGroupID));
             using (var sqlreader = sqlCommand.ExecuteReader())
             {
