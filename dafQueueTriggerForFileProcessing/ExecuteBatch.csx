@@ -1,5 +1,6 @@
 
 using System;
+using Microsoft.Azure.Common;
 using Microsoft.Azure.Batch;
 using Microsoft.Azure.Batch.Auth;
 using Microsoft.Azure.Batch.Common;
@@ -8,7 +9,12 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.Diagnostics;
-
+using System.Data;
+using System.Data.SqlClient;
+using System.Configuration;
+using System.Text;
+using System.Threading;
+using Hyak.Common;
 // public static void Run(TimerInfo myTimer, TraceWriter log)
 // {
 //     log.Info($"C# manually triggered function called");
@@ -34,9 +40,9 @@ class ExecuteBatch
     private string outputContainerName = ""; // "telemetry";
     private string StagingAccName= "";
     private string StagingAccKey= "";
-    private string stagingOutputName = "", filesGroupID="", strTimeStamp="";
-    int runGroupID,packageID;
-    public async Task MainAsync(TraceWriter _log, int rGroupID, int pkgID, string fName, string sTimeStamp, string fGroupID)
+    private string stagingOutputName = "", strTimeStamp="";
+    int runGroupID,packageID,filesGroupID;
+    public async Task MainAsync(TraceWriter _log, int rGroupID, int pkgID, string fName, string sTimeStamp, int fGroupID)
     {
         log = _log;
         log.Info($"Sample start: {DateTime.Now.ToString()}" );
@@ -148,7 +154,7 @@ class ExecuteBatch
             sql="DAF.usp_GetFilesGroupDetails";
             sqlCommand = new sqlCommand(sql,conn);
             sqlCommand.CommandType = CommandType.Text;
-            sqlCommand.Parameters.Add(new SqlParameter("@fileGroupID", fileGroupID));
+            sqlCommand.Parameters.Add(new SqlParameter("@fileGroupID", filesGroupID));
             using (var sqlreader = sqlCommand.ExecuteReader())
             {
                 while (reader.Read())
@@ -175,46 +181,7 @@ class ExecuteBatch
         stagingOutputName = ""; //TODO: staging name needs to be passed
         
     } 
-
-    private List<string> getDotNetParameters(int packageID, int runGroupID )
-    {
-        List<string> arguments = new List<string>();
-        string args = string.Empty;
-
-        using (SqlConnection conn = new SqlConnection())
-        {
-            SqlCommand sqlCommand;
-            string sqlText = null;
-            conn.ConnectionString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString; //"Data Source=eafffsdevelopment.database.windows.net,1433;Initial Catalog=EAFFFSDevMetadata;User ID=sqladmin;Password=Pass01word";
-            sqlText = "SELECT  ParameterDescription, parametervalue FROM daf.packagerungroup pkgGRP JOIN daf.parameter prm ON pkgGRP.packagerungroupID = prm.packagerungroupID " +
-                        "WHERE rungroupid = " + runGroupID +" AND packageid= " + packageID + " ORDER BY pkgGRP.LastModifiedDate Desc";
-            conn.Open();
-
-            sqlCommand = new SqlCommand(sqlText, conn);
-            sqlCommand.CommandType = CommandType.Text;
-            //command.Parameters.Add(new SqlParameter("@FileName", "abc34.txt"));
-            using (var reader = sqlCommand.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    args="";
-                    args = reader["ParameterDescription"].ToString().Trim();
-                    arguments.Add(args);
-                    if (args.Equals("--app_arguments"))
-                    {
-                        args = reader["parametervalue"].ToString() + " " + fName + " " + strTimeStamp + ((isGrouped == "Y")? " " + scalaConfigList["SCALA_DAF_METADB"]: "");
-                    }
-                    else
-                        args = reader["parametervalue"].ToString();
-
-                    arguments.Add(args);
-
-
-                }
-            }
-        }
-        return arguments; //args.Split(',').ToList(); 
-    }
+   
     /// <summary>
     /// Creates a container with the specified name in Blob storage, unless a container with that name already exists.
     /// </summary>
