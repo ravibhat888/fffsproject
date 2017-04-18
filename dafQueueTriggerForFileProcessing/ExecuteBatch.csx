@@ -302,7 +302,7 @@ class ExecuteBatch
             // Batch service. This CloudPool instance is therefore considered "unbound," and we can modify its properties.
             pool = batchClient.PoolOperations.CreatePool(
                 poolId: poolId,
-                targetDedicated: 2,                                                         // 3 compute nodes
+                targetDedicated: 1,                                                         // 3 compute nodes
                 virtualMachineSize: "small",                                                // single-core, 1.75 GB memory, 225 GB disk
                 cloudServiceConfiguration: new CloudServiceConfiguration(osFamily: "4"));   // Windows Server 2012 R2
 
@@ -411,8 +411,15 @@ class ExecuteBatch
         {
             
             log.Info($"Container {inputContainerName}...");
+            var ipcontainerFolders = inputContainerName.Split('/');;
+            CloudBlobContainer container = blobClient.GetContainerReference(ipcontainerFolders[0]);
+            var folders = container.GetDirectoryReference(ipcontainerFolders[1]);
 
-            CloudBlobContainer container = blobClient.GetContainerReference(inputContainerName);
+            IEnumerable<IListBlobItem> item = null;
+            if (folders == null)
+                item = container.ListBlobs(prefix: null, useFlatBlobListing: true);
+            else
+                item = folders.ListBlobs(useFlatBlobListing: true);
 
             //Check whether blob has files or not, if not skip task creation.
 
