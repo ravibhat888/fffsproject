@@ -4,7 +4,7 @@
 #r "Microsoft.WindowsAzure.Storage"
 #r "System.Linq"
 #r "System.Data.DataSetExtensions"
-
+#load "ExecuteBatch.csx"
 
 using System;
 using System.Net;
@@ -110,6 +110,13 @@ public class ExecutePackage
                         logError(exceptionMsg, servicePkgID, packageName, dataEntityRefCode);
                     }
                     log.Info($"Finished SP :" + packageName);
+                }
+                else if (row["implementationtype"].ToString().ToLower().Equals(ImplementationType.DOTNET.ToString().ToLower()))
+                {
+                    log.Info($"Called .Net executable :" + packageName);
+                    ExecuteBatch batch = new ExecuteBatch();
+                    batch.MainAsync(log).Wait();
+                    log.Info($"Finished .Net executable execution :" + packageName);
                 }
                 executeSrvcPkgStoredProcedure(PackageType.Service, (errorThrown ==true)? "FAIL":"Update", runGroupID, packageID);
                 if (errorThrown == true && exitRefCode.Equals("ABORT")) {
