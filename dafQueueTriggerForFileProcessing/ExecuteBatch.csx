@@ -449,12 +449,15 @@ class ExecuteBatch
         catch (BatchException be)
         {
             log.Info($"Error occured while trying to process task: {be.Message} ");
+            log.Info($"Inner exception: {be.InnerException} ");
+
             throw; // Any other exception is unexpected
 
         }
         catch (Exception be)
         {
             log.Info($"Error occured while trying to process task: {be.Message} ");
+            log.Info($"Inner exception: {be.InnerException} ");
             throw be; // Any other exception is unexpected
 
         }
