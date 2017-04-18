@@ -438,6 +438,7 @@ class ExecuteBatch
             CloudTask task = new CloudTask(taskId, taskCommandLine);
             //task.ResourceFiles = new List<ResourceFile> { inputFile };
             tasks.Add(task);
+            log.Info($"Task Added..." );
             //await batchClient.JobOperations.ReactivateTaskAsync(jobId, taskId);
 
             // Add the tasks as a collection opposed to a separate AddTask call for each. Bulk task submission
