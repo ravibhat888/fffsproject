@@ -40,7 +40,7 @@ class ExecuteBatch
     private string outputContainerName = ""; // "telemetry";
     private string StagingAccName= "";
     private string StagingAccKey= "";
-    private string stagingOutputName = "", strTimeStamp="";
+    private string stagingOutputName = "", strTimeStamp="", fileType="";
     int runGroupID,packageID,filesGroupID;
     public async Task MainAsync(TraceWriter _log, int rGroupID, int pkgID, string fName, string sTimeStamp, int fGroupID)
     {
@@ -161,6 +161,7 @@ class ExecuteBatch
                 {
                     outputContainerName = sqlreader["outputdirectory"].ToString().Trim();
                     inputContainerName = sqlreader["inputdirectory"].ToString().Trim();
+                    fileType = sqlreader["Name"].ToString().Trim();
                 }
                 sqlreader.Close();
                 sqlreader.Dispose();
@@ -434,7 +435,7 @@ class ExecuteBatch
             //string taskId = "taskCatchment_" + inputFiles.IndexOf(inputFile) + DateTime.UtcNow.Ticks.ToString();
             var connectioString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
 
-            string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3}", inputContainerName, outputContainerName, filesGroupID, stagingOutputName  ); 
+            string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4}", inputContainerName, outputContainerName, filesGroupID, fileType, stagingOutputName  ); 
             //string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", "abc", "xyz", StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, "staging"); 
             
             //string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", "northeast-n7", "telemetry", StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, "telemetry-archive"); 
