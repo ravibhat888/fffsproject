@@ -435,7 +435,7 @@ class ExecuteBatch
             //string taskId = "taskCatchment_" + inputFiles.IndexOf(inputFile) + DateTime.UtcNow.Ticks.ToString();
             var connectioString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
 
-            string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4}", inputContainerName,"telemetry/"+outputContainerName, filesGroupID, fileType, stagingOutputName  ); 
+            string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4}", inputContainerName,outputContainerName, filesGroupID, fileType, stagingOutputName  ); 
             //string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", "abc", "xyz", StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, "staging"); 
             
             //string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", "northeast-n7", "telemetry", StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, "telemetry-archive"); 
