@@ -430,21 +430,28 @@ class ExecuteBatch
             }
 
             log.Info($"Task creation,for the  blob [{inputContainerName}]..." );
-            string taskId = "CatchmentAvgTask_" + inputContainerName +  "_" + DateTime.Now.Ticks.ToString();
+            string taskId = "Task_" + ipcontainerFolders[1].Replace('/','_') +  "_" + DateTime.Now.Ticks.ToString();
             //string taskId = "taskCatchment_" + inputFiles.IndexOf(inputFile) + DateTime.UtcNow.Ticks.ToString();
-            //string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", inputContainerName, outputContainerName, StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, stagingOutputName); 
-            string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", "abc", "xyz", StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, stagingOutputName); 
+            var connectioString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
+            string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6} {7}", inputContainerName, outputContainerName, StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, stagingOutputName, connectioString, filesGroupID ); 
+            //string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", "abc", "xyz", StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, "staging"); 
+            
+            //string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", "northeast-n7", "telemetry", StorageAccountName, StorageAccountKey,StagingAccName, StagingAccKey, "telemetry-archive"); 
+            
+            //string taskCommandLine = String.Format("cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\ProcessCatchment.exe {0} {1} {2} {3} {4} {5} {6}", "northeast-n7", "telemetry", "1", "2","3", "4", "telemetry-archive"); 
+
             //StagingAccName, StagingAccKey, stagingOutputName
-            log.Info($"Command line passed to batch: [{taskCommandLine}]..." );
+            log.Info($"Command line passed to batch: {taskCommandLine}" );
+            log.Info($"Task ID: {taskId}"); 
             CloudTask task = new CloudTask(taskId, taskCommandLine);
             //task.ResourceFiles = new List<ResourceFile> { inputFile };
-            tasks.Add(task);
+            //tasks.Add(task);
             log.Info($"Task Added..." );
             //await batchClient.JobOperations.ReactivateTaskAsync(jobId, taskId);
 
             // Add the tasks as a collection opposed to a separate AddTask call for each. Bulk task submission
             // helps to ensure efficient underlying API calls to the Batch service.
-            await batchClient.JobOperations.AddTaskAsync(jobId, tasks);
+            await batchClient.JobOperations.AddTaskAsync(jobId, task);
             log.Info($"Task execution is done..." );
         }
         catch (BatchException be)

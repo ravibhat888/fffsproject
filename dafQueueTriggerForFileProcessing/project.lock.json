@@ -1,7 +1,20 @@
 {
+  "locked": false,
   "version": 2,
   "targets": {
     ".NETFramework,Version=v4.6": {
+      "Azure.Batch/6.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Rest.ClientRuntime.Azure": "3.3.5"
+        },
+        "compile": {
+          "lib/net45/Microsoft.Azure.Batch.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.Azure.Batch.dll": {}
+        }
+      },
       "Hyak.Common/1.1.0": {
         "type": "package",
         "dependencies": {
@@ -279,7 +292,50 @@
           "lib/net45/System.Net.Http.Primitives.dll": {}
         }
       },
-      "Newtonsoft.Json/7.0.1": {
+      "Microsoft.Rest.ClientRuntime/3.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "8.0.3"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Net",
+          "System.Net.Http",
+          "System.Net.Http.WebRequest",
+          "System.Runtime.Serialization",
+          "System.Xml",
+          "mscorlib"
+        ],
+        "compile": {
+          "lib/net45/Microsoft.Rest.ClientRuntime.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.Rest.ClientRuntime.dll": {}
+        }
+      },
+      "Microsoft.Rest.ClientRuntime.Azure/3.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Rest.ClientRuntime": "[2.0.0, 3.0.0)"
+        },
+        "frameworkAssemblies": [
+          "Microsoft.CSharp",
+          "System",
+          "System.Core",
+          "System.Net",
+          "System.Net.Http",
+          "System.Net.Http.WebRequest",
+          "System.Xml",
+          "mscorlib"
+        ],
+        "compile": {
+          "lib/net45/Microsoft.Rest.ClientRuntime.Azure.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.Rest.ClientRuntime.Azure.dll": {}
+        }
+      },
+      "Newtonsoft.Json/8.0.3": {
         "type": "package",
         "compile": {
           "lib/net45/Newtonsoft.Json.dll": {}
@@ -387,6 +443,17 @@
     }
   },
   "libraries": {
+    "Azure.Batch/6.0.0": {
+      "sha512": "fPx4roqJsirKeuBOdzE43MKanrs2Trs3fJk8asyaifmiy2le8qehtjTlby9sXgCz3DANXHei3IKMmofJL4ODLQ==",
+      "type": "package",
+      "path": "Azure.Batch/6.0.0",
+      "files": [
+        "Azure.Batch.6.0.0.nupkg.sha512",
+        "Azure.Batch.nuspec",
+        "lib/net45/Microsoft.Azure.Batch.dll",
+        "lib/net45/Microsoft.Azure.Batch.xml"
+      ]
+    },
     "Hyak.Common/1.1.0": {
       "sha512": "SWaZ2JF26HTKkL0NLJV8J8f8ImJGfQAE8yL/JfDPZ+nCYxxG2pVT5yvKujL7ZEErgvVkB5/Yb7NgHDZLsxrcDw==",
       "type": "package",
@@ -897,11 +964,40 @@
         "microsoft.net.http.nuspec"
       ]
     },
-    "Newtonsoft.Json/7.0.1": {
-      "sha512": "q3V4KLetMLnt1gpAVWgtXnHjKs0UG/RalBc29u2ZKxd5t5Ze4JBL5WiiYIklJyK/5CRiIiNwigVQUo0FgbsuWA==",
+    "Microsoft.Rest.ClientRuntime/3.0.0": {
+      "sha512": "d15LijCL16isj69vxFriP/59w5DJVCc27gYGDCHlMKkNgrpqbWqkIKdodxWmSYKwxWRagp0zjqLabfOt4gavVg==",
       "type": "package",
-      "path": "newtonsoft.json/7.0.1",
+      "path": "Microsoft.Rest.ClientRuntime/3.0.0",
       "files": [
+        "Microsoft.Rest.ClientRuntime.3.0.0.nupkg.sha512",
+        "Microsoft.Rest.ClientRuntime.nuspec",
+        "lib/net45/Microsoft.Rest.ClientRuntime.dll",
+        "lib/netstandard1.1/Microsoft.Rest.ClientRuntime.dll",
+        "lib/netstandard1.5/Microsoft.Rest.ClientRuntime.dll"
+      ]
+    },
+    "Microsoft.Rest.ClientRuntime.Azure/3.0.0": {
+      "sha512": "Puoxvszm6yDbYukX9ew6tp09KOICOQ+090AmA9jv7GucU6OvTrgjQu9kNVi0AvQlBB5IaapetIEQoD2xCjW6Qg==",
+      "type": "package",
+      "path": "Microsoft.Rest.ClientRuntime.Azure/3.0.0",
+      "files": [
+        "Microsoft.Rest.ClientRuntime.Azure.3.0.0.nupkg.sha512",
+        "Microsoft.Rest.ClientRuntime.Azure.nuspec",
+        "lib/dnxcore50/Microsoft.Rest.ClientRuntime.Azure.dll",
+        "lib/dnxcore50/Microsoft.Rest.ClientRuntime.Azure.xml",
+        "lib/net45/Microsoft.Rest.ClientRuntime.Azure.dll",
+        "lib/net45/Microsoft.Rest.ClientRuntime.Azure.xml",
+        "lib/portable-net45+win+wpa81/Microsoft.Rest.ClientRuntime.Azure.dll",
+        "lib/portable-net45+win+wpa81/Microsoft.Rest.ClientRuntime.Azure.xml"
+      ]
+    },
+    "Newtonsoft.Json/8.0.3": {
+      "sha512": "KGsYQdS2zLH+H8x2cZaSI7e+YZ4SFIbyy1YJQYl6GYBWjf5o4H1A68nxyq+WTyVSOJQ4GqS/DiPE+UseUizgMg==",
+      "type": "package",
+      "path": "Newtonsoft.Json/8.0.3",
+      "files": [
+        "Newtonsoft.Json.8.0.3.nupkg.sha512",
+        "Newtonsoft.Json.nuspec",
         "lib/net20/Newtonsoft.Json.dll",
         "lib/net20/Newtonsoft.Json.xml",
         "lib/net35/Newtonsoft.Json.dll",
@@ -914,8 +1010,6 @@
         "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.xml",
         "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll",
         "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.xml",
-        "newtonsoft.json.7.0.1.nupkg.sha512",
-        "newtonsoft.json.nuspec",
         "tools/install.ps1"
       ]
     },
@@ -1238,21 +1332,22 @@
   "projectFileDependencyGroups": {
     "": [],
     ".NETFramework,Version=v4.6": [
+      "Azure.Batch >= 6.0.0",
       "Hyak.Common >= 1.1.0",
       "Microsoft.Azure.Common >= 2.1.0",
       "Microsoft.Azure.Common.Dependencies >= 1.0.0",
+      "Microsoft.Azure.KeyVault.Core >= 1.0.0",
       "Microsoft.Azure.Management.HDInsight.Job >= 2.0.5",
       "Microsoft.Bcl >= 1.1.10",
       "Microsoft.Bcl.Async >= 1.0.168",
       "Microsoft.Build >= 1.0.21",
       "Microsoft.IdentityModel.Clients.ActiveDirectory >= 3.10.305231913",
       "Microsoft.Net.Http >= 2.2.29",
+      "Microsoft.Rest.ClientRuntime >= 3.0.0",
+      "Microsoft.Rest.ClientRuntime.Azure >= 3.0.0",
       "WindowsAzure.Storage >= 7.0.0"
     ]
   },
   "tools": {},
-  "projectFileToolGroups": {},
-  "packageFolders": {
-    "D:\\home\\data\\Functions\\packages\\nuget": {}
-  }
+  "projectFileToolGroups": {}
 }
