@@ -125,6 +125,7 @@ public class ExecutePackage
                     log.Info($"Called .Net executable :" + packageName);
                     ExecuteBatch batch = new ExecuteBatch();
                     errorThrown = !batch.MainAsync(log, runGroupID, packageID, fName, strTimeStamp,filesGroupID).GetAwaiter().GetResult();
+                    log.Info($"Error Thrown : { errorThrown }" );
                     log.Info($"Finished .Net executable execution :" + packageName);
                     updateGenFileName();
                 }
