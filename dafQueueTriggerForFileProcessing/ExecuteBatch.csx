@@ -46,7 +46,7 @@ class ExecuteBatch
     {
         log = _log;
         log.Info($"Sample start: {DateTime.Now.ToString()}" );
-        bool status;
+        bool status= true;
         runGroupID = rGroupID;
         packageID = pkgID;
         filesGroupID = fGroupID;
