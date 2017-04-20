@@ -91,6 +91,7 @@ public class ExecutePackage
                 exceptionMsg = "";
                 noofRecordsAff = 0;
                 generatedRecord = 0;
+                errorThrown = false;
                 executeSrvcPkgStoredProcedure(PackageType.Service, "Insert", runGroupID, packageID);
                 if (row["implementationtype"].ToString().ToLower().Equals(ImplementationType.SCALA.ToString().ToLower()))
                 {
@@ -123,7 +124,7 @@ public class ExecutePackage
                 {
                     log.Info($"Called .Net executable :" + packageName);
                     ExecuteBatch batch = new ExecuteBatch();
-                    errorThrown = batch.MainAsync(log, runGroupID, packageID, fName, strTimeStamp,filesGroupID).GetAwaiter().GetResult();
+                    errorThrown = !batch.MainAsync(log, runGroupID, packageID, fName, strTimeStamp,filesGroupID).GetAwaiter().GetResult();
                     log.Info($"Finished .Net executable execution :" + packageName);
                     updateGenFileName();
                 }
