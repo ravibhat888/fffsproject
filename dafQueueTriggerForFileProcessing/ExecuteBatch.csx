@@ -42,11 +42,11 @@ class ExecuteBatch
     private string StagingAccKey= "";
     private string stagingOutputName = "", strTimeStamp="", fileType="";
     int runGroupID,packageID,filesGroupID;
-    public async Task MainAsync(TraceWriter _log, int rGroupID, int pkgID, string fName, string sTimeStamp, int fGroupID)
+    public async Task<bool> MainAsync(TraceWriter _log, int rGroupID, int pkgID, string fName, string sTimeStamp, int fGroupID)
     {
         log = _log;
         log.Info($"Sample start: {DateTime.Now.ToString()}" );
-
+        bool status;
         runGroupID = rGroupID;
         packageID = pkgID;
         filesGroupID = fGroupID;
@@ -104,7 +104,7 @@ class ExecuteBatch
                 await AddTasksAsync(batchClient, JobId, outputContainerSasUrl,blobClient);
 
                 // Monitor task success/failure, specifying a maximum amount of time to wait for the tasks to complete
-                await MonitorTasks(batchClient, JobId, TimeSpan.FromMinutes(30));
+                status =  await MonitorTasks(batchClient, JobId, TimeSpan.FromMinutes(30));
 
                 timer.Stop();
                 Console.WriteLine();
@@ -125,6 +125,7 @@ class ExecuteBatch
                 batchClient.Close();
                 batchClient.Dispose();
             }
+            return status;
         }
         
     }

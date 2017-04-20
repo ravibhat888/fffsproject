@@ -81,7 +81,6 @@ public class ExecutePackage
             executeCleanupSP(cleanUpSPName, runGroupID, "START");
             executeCtrlPkgStoredProcedure(PackageType.Controlling, "Insert", runGroupID);
             strTimeStamp = DateTime.Now.ToString("yyyyMMddhhmmss") + "-" + ctrlPackageID;
-            updateGenFileName();
             foreach (DataRow row in packageData.Rows)
             {
                 packageName = row["PackageName"].ToString();
@@ -90,6 +89,8 @@ public class ExecutePackage
                 exitRefCode = row["ExitActionRefCode"].ToString();
                 dataEntityRefCode = row["DataEntityRefCode"].ToString();
                 exceptionMsg = "";
+                noofRecordsAff = 0;
+                generatedRecord = 0;
                 executeSrvcPkgStoredProcedure(PackageType.Service, "Insert", runGroupID, packageID);
                 if (row["implementationtype"].ToString().ToLower().Equals(ImplementationType.SCALA.ToString().ToLower()))
                 {
@@ -103,6 +104,9 @@ public class ExecutePackage
                     {
                         logError(exceptionMsg, servicePkgID, packageName, dataEntityRefCode);
                     }
+                    else
+                        updateGenFileName();
+
                     log.Info($"Finished Scala Job :" + packageName);
                 }
                 else if (row["implementationtype"].ToString().ToLower().Equals(ImplementationType.STOREDPROCEDURE.ToString().ToLower()))
@@ -119,8 +123,9 @@ public class ExecutePackage
                 {
                     log.Info($"Called .Net executable :" + packageName);
                     ExecuteBatch batch = new ExecuteBatch();
-                    batch.MainAsync(log, runGroupID, packageID, fName, strTimeStamp,filesGroupID).Wait();
+                    errorThrown = batch.MainAsync(log, runGroupID, packageID, fName, strTimeStamp,filesGroupID).GetAwaiter().GetResult();
                     log.Info($"Finished .Net executable execution :" + packageName);
+                    updateGenFileName();
                 }
                 executeSrvcPkgStoredProcedure(PackageType.Service, (errorThrown ==true)? "FAIL":"Update", runGroupID, packageID);
                 if (errorThrown == true && exitRefCode.Equals("ABORT")) {
