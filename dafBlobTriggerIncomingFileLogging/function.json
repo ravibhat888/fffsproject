@@ -4,7 +4,7 @@
       "name": "myBlob",
       "type": "blobTrigger",
       "direction": "in",
-      "path": "wave/{name}",
+      "path": "input/{name}",
       "connection": "AzureWebJobsStorage"
     }
   ],
