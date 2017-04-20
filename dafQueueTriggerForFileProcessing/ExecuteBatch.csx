@@ -530,9 +530,7 @@ class ExecuteBatch
             {
                 // A scheduling error indicates a problem starting the task on the node. It is important to note that
                 // the task's state can be "Completed," yet still have encountered a scheduling error.
-
                 allTasksSuccessful = false;
-
                 log.Info($"WARNING: Task {task.Id} encountered a scheduling error : {task.ExecutionInformation.SchedulingError.Message}");
             }
             else if (task.ExecutionInformation.ExitCode != 0)
@@ -540,10 +538,8 @@ class ExecuteBatch
                 // A non-zero exit code may indicate that the application executed by the task encountered an error
                 // during execution. As not every application returns non-zero on failure by default (e.g. robocopy),
                 // your implementation of error checking may differ from this example.
-
                 allTasksSuccessful = false;
-
-                log.Info($"WARNING: Task {task.Id} returned a non-zero exit code - this may indicate task execution or completion failure.");
+                Console.WriteLine("WARNING: Task [{0}] returned a non-zero exit code - this may indicate task execution or completion failure. Message: {1}", task.Id, task.ExecutionInformation.SchedulingError.Message);
             }
         }
 
